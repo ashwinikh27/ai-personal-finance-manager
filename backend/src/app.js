@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { protect } = require("./middleware/authMiddleware");
 
 const app = express();
 
@@ -11,5 +12,11 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.get("/", (req, res) => {
   res.send("API is running");
 });
+
+
+app.get("/api/protected", protect, (req, res) => {
+  res.json({ message: "Protected route accessed" });
+});
+
 
 module.exports = app;
