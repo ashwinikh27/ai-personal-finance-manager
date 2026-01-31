@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const { protect } = require("./middleware/authMiddleware");
+const { errorHandler } = require("./middleware/errorMiddleware");
+
 
 const app = express();
 
@@ -17,6 +19,8 @@ app.get("/", (req, res) => {
 app.get("/api/protected", protect, (req, res) => {
   res.json({ message: "Protected route accessed" });
 });
+
+app.use(errorHandler);
 
 
 module.exports = app;
