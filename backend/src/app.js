@@ -13,6 +13,10 @@ app.use("/api/auth", require("./routes/authRoutes"));
 
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 
+app.use("/api/income", require("./routes/incomeRoutes"));
+
+app.use("/api/summary", require("./routes/summaryRoutes"));
+
 
 app.get("/", (req, res) => {
   res.send("API is running");

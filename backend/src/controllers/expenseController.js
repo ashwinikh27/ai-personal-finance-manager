@@ -27,12 +27,21 @@ const addExpense = async (req, res) => {
 
 const getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({ user: req.user }).sort({ date: -1 });
+    const query = { user: req.user };
+
+    // If category is passed in query params, filter by it
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+
+    const expenses = await Expense.find(query).sort({ date: -1 });
+
     res.json(expenses);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 const deleteExpense = async (req, res) => {
