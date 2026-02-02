@@ -1,25 +1,33 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
-  if (!localStorage.getItem("token")) {
-  return <p>Please login</p>;
-}
-
   const [expenses, setExpenses] = useState([]);
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      const expenseRes = await api.get("/api/expenses");
-      const summaryRes = await api.get("/api/summary/monthly");
+      try {
+        const expenseRes = await api.get("/api/expenses");
+        const summaryRes = await api.get("/api/summary/monthly");
 
-      setExpenses(expenseRes.data);
-      setSummary(summaryRes.data);
+        setExpenses(expenseRes.data);
+        setSummary(summaryRes.data);
+      } catch (error) {
+        console.error(error);
+
+        // If unauthorized, redirect to login
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }
+      }
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   return (
     <div>
