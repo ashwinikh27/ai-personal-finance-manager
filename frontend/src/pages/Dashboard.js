@@ -1,5 +1,4 @@
 
-
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -26,19 +25,54 @@ ChartJS.register(
 
 function Dashboard() {
   const [expenses, setExpenses] = useState([]);
-  const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0 });
+const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+const [newExpense, setNewExpense] = useState({
+  title: "",
+  amount: "",
+  category: "",
+});
+
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+  localStorage.removeItem("token");
+  navigate("/login");
+};
+
+const handleAddExpense = async (e) => {
+  e.preventDefault();
+
+  try {
+    await api.post("/api/expenses", newExpense);
+
+    alert("Expense added!");
+
+    // Refresh data
+    window.location.reload();
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const handleDelete = async (id) => {
+  try {
+    await api.delete(`/api/expenses/${id}`);
+    setExpenses(expenses.filter((e) => e._id !== id));
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const expenseRes = await api.get("/api/expenses");
-        const summaryRes = await api.get("/api/summary/monthly");
 
         setExpenses(expenseRes.data);
-        setSummary(summaryRes.data);
       } catch (error) {
         console.error(error);
+
+
 
         // If unauthorized, redirect to login
         if (error.response && error.response.status === 401) {
@@ -72,38 +106,134 @@ const barData = {
   datasets: [
     {
       label: "Amount",
-      data: [summary.totalIncome, summary.totalExpense],
-    },
+      data: [0, totalExpense],    },
   ],
 };
 
 
 
-  return (
-    <div>
-      <h1>Dashboard</h1>
+return (
+  <div className="min-h-screen bg-gray-100 p-6">
 
-      <h3>Monthly Summary</h3>
-      <p>Total Income: ₹{summary.totalIncome}</p>
-      <p>Total Expense: ₹{summary.totalExpense}</p>
-
-      <h3>Expense Breakdown</h3>
-      <Pie data={pieData} />
-
-      <h3>Income vs Expense</h3>
-      <Bar data={barData} />
-
-
-      <h3>Expenses</h3>
-      <ul>
-        {expenses.map((e) => (
-          <li key={e._id}>
-            {e.title} - ₹{e.amount} ({e.category})
-          </li>
-        ))}
-      </ul>
+    {/* Header */}
+    <div className="flex justify-between items-center mb-6">
+      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <button
+        onClick={handleLogout}
+        className="bg-red-500 text-white px-4 py-2 rounded"
+      >
+        Logout
+      </button>
     </div>
-  );
+
+    {/* Add Expense Card */}
+    <div className="bg-white p-6 rounded shadow mb-6">
+      <h3 className="text-xl font-semibold mb-4">Add Expense</h3>
+      <form onSubmit={handleAddExpense} className="flex gap-4">
+        <input
+          type="text"
+          placeholder="Title"
+          value={newExpense.title}
+          onChange={(e) =>
+            setNewExpense({ ...newExpense, title: e.target.value })
+          }
+          className="border p-2 rounded w-full"
+          required
+        />
+
+        <input
+          type="number"
+          placeholder="Amount"
+          value={newExpense.amount}
+          onChange={(e) =>
+            setNewExpense({ ...newExpense, amount: e.target.value })
+          }
+          className="border p-2 rounded w-full"
+          required
+        />
+
+        <input
+          type="text"
+          placeholder="Category"
+          value={newExpense.category}
+          onChange={(e) =>
+            setNewExpense({ ...newExpense, category: e.target.value })
+          }
+          className="border p-2 rounded w-full"
+          required
+        />
+
+        <button className="bg-blue-600 text-white px-4 rounded">
+          Add
+        </button>
+      </form>
+    </div>
+
+    {/* Summary Cards */}
+    <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="bg-white p-6 rounded shadow text-center">
+        <h3 className="text-lg font-semibold">Total Income</h3>
+        <p className="text-2xl font-bold text-green-600">₹0</p>
+      </div>
+
+      <div className="bg-white p-6 rounded shadow text-center">
+        <h3 className="text-lg font-semibold">Total Expense</h3>
+        <p className="text-2xl font-bold text-red-600">
+          ₹{totalExpense}
+        </p>
+      </div>
+    </div>
+
+    {/* Charts */}
+    <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="bg-white p-6 rounded shadow">
+        <h3 className="mb-4 font-semibold">Expense Breakdown</h3>
+        <div className="h-80">
+          <Pie data={pieData} options={{ maintainAspectRatio: false }} />
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded shadow">
+        <h3 className="mb-4 font-semibold">Income vs Expense</h3>
+        <div className="h-80">
+          <Bar data={barData} options={{ maintainAspectRatio: false }} />
+        </div>
+      </div>
+    </div>
+
+    {/* Expense List */}
+    <div className="bg-white p-6 rounded shadow">
+      <h3 className="text-xl font-semibold mb-4">Expenses</h3>
+      <ul className="space-y-3">
+  {expenses.map((e) => (
+    <li
+      key={e._id}
+      className="flex justify-between items-center bg-gray-50 p-3 rounded"
+    >
+      <div>
+        <p className="font-medium">{e.title}</p>
+        <p className="text-sm text-gray-500">{e.category}</p>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <span className="font-semibold text-gray-800">
+          ₹{e.amount}
+        </span>
+
+        <button
+          onClick={() => handleDelete(e._id)}
+          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+        >
+          Delete
+        </button>
+      </div>
+    </li>
+  ))}
+</ul>
+    </div>
+
+  </div>
+);
 }
 
 export default Dashboard;

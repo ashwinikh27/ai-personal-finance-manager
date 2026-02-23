@@ -27,12 +27,12 @@ function Login() {
 
       console.log("LOGIN RESPONSE:", res.data);
 
-    if (res.data.data?.token) {
+if (res.data.data?.token) {
   localStorage.setItem("token", res.data.data.token);
   navigate("/dashboard");
-  } else {
-        alert("Login failed: No token received");
-      }
+} else {
+  alert("Login failed: No token received");
+}
     } catch (error) {
       console.error("LOGIN ERROR:", error.response?.data || error.message);
       alert("Invalid email or password");

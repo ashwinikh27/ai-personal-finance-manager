@@ -39,11 +39,13 @@ const registerUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
+  console.error("REGISTER BACKEND ERROR:", error);
+
+  res.status(500).json({
+    success: false,
+    message: error.message,
+  });
+}
 };
 
 const loginUser = async (req, res) => {
@@ -88,11 +90,9 @@ const loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
+  console.error("REGISTER BACKEND ERROR:", error);
+  res.status(500).json({ success: false, message: error.message });
+}
 };
 
 module.exports = { registerUser, loginUser };
